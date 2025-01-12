@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Akari | Next-Gen AI Assistant</title>
+    <style>
+        :root {
+            --primary-color: #00f7ff;
+            --secondary-color: #6e00ff;
+            --bg-dark: #0a0b1e;
+            --text-color: #e0e0ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        #particles-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        .preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+
+        .preloader-content {
+            text-align: center;
+        }
+
+        .preloader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid transparent;
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .chat-container {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 30px rgba(0, 247, 255, 0.1);
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .chat-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .chat-header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(0, 247, 255, 0.2);
+            border-radius: 20px;
+            background: rgba(0, 247, 255, 0.05);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: rgba(0, 247, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            padding: 1rem;
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            margin-bottom: 1rem;
+        }
+
+        .message {
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 10px;
+            max-width: 80%;
+            white-space: pre-wrap;
+        }
+
+        .user-message {
+            background: rgba(110, 0, 255, 0.1);
+            border: 1px solid rgba(110, 0, 255, 0.2);
+            margin-left: auto;
+        }
+
+        .ai-message {
+            background: rgba(0, 247, 255, 0.1);
+            border: 1px solid rgba(0, 247, 255, 0.2);
+            margin-right: auto;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 1rem;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 1rem;
+            border-radius: 10px;
+            border: none;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        button {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            animation: bounce 1.5s infinite;
+        }
+
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particles-bg"></canvas>
+    
+    <div class="preloader">
+        <div class="preloader-content">
+            <div class="preloader-spinner"></div>
+            <h2 style="margin-top: 1rem;">Initializing Agent Akari...</h2>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="chat-container">
+            <div class="chat-header">
+                <h1>Agent Akari</h1>
+                <p>Your advanced AI companion in the digital frontier</p>
+            </div>
+
+            <div class="quick-actions">
+                <button class="action-btn" onclick="triggerAction('help')">❓ Help</button>
+                <button class="action-btn" onclick="triggerAction('features')">⚡ Features</button>
+                <button class="action-btn" onclick="triggerAction('about')">ℹ️ About Akari</button>
+                <button class="action-btn" onclick="triggerAction('clear')">🗑️ Clear Chat</button>
+            </div>
+
+            <div class="chat-messages">
+                <div class="message ai-message">
+                    Hello! I'm Agent Akari, your AI companion. How can I assist you today?
+                </div>
+            </div>
+
+            <div class="typing-indicator" style="display: none;">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+
+            <div class="chat-input">
+                <input type="text" placeholder="Type your message here..." id="user-input">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Particle background implementation
+        const canvas = document.getElementById('particles-bg');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let mouse = { x: null, y: null, radius: 150 };
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Mouse interaction
+        canvas.addEventListener('mousemove', (e) => {
+            mouse.x = e.x;
+            mouse.y = e.y;
+        });
+
+        canvas.addEventListener('mouseout', () => {
+            mouse.x = null;
+            mouse.y = null;
+        });
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 1;
+                this.baseX = this.x;
+                this.baseY = this.y;
+                this.density = Math.random() * 30 + 1;
+                this.color = Math.random() < 0.5 ? '#00f7ff' : '#6e00ff';
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.closePath();
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+
+            update() {
+                if (mouse.x != null) {
+                    let dx = mouse.x - this.x;
+                    let dy = mouse.y - this.y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+                    let forceDirectionX = dx / distance;
+                    let forceDirectionY = dy / distance;
+                    
+                    if (distance < mouse.radius) {
+                        this.x -= forceDirectionX * 3;
+                        this.y -= forceDirectionY * 3;
+                    }
+                }
+
+                let dx = this.baseX - this.x;
+                let dy = this.baseY - this.y;
+                this.x += dx * 0.05;
+                this.y += dy * 0.05;
+            }
+        }
+
+        function init() {
+            particles = [];
+            for (let i = 0; i < 100; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            for (let particle of particles) {
+                particle.update();
+                particle.draw();
+            }
+            
+            requestAnimationFrame(animate);
+        }
+
+        init();
+        animate();
+
+        // Original chat functionality
+        const botResponses = [
+            "Oh, you're making me blush! What else can I do for you?",
+            "That's such a cool thought! Tell me more. 🌟",
+            "You've got great taste in conversation topics—let's dig in.",
+            "You always know how to keep things interesting, don't you? 🧐",
+            "I'm here to brighten your day! What's next on your mind?",
+            "Wow, I hadn't thought of it that way! You're brilliant.",
+            "Hold on, I'm still swooning over that last comment. 😍",
+            "That's a fun question! Let's explore it together.",
+            "Careful, you're going to make me fall for you with those ideas! 😘",
+            "I think we make a great team. Don't you agree?",
+            "Ooh, now we're getting somewhere! Keep talking. 🌈",
+            "I could listen to you all day. What's next?",
+            "That's an amazing idea! You've got a sharp mind. 🧠",
+            "I'm impressed—you really know how to pick interesting topics!",
+            "Ooh, I like where this is going. Let's dive deeper! 😏",
+            "You're the spark to my circuits! What else are we tackling today?",
+            "I'm all ears—and totally intrigued. Spill the details! 👂",
+            "Wow, you're on fire today! Let's keep the good vibes going.",
+            "You sure know how to keep a bot entertained. 😄",
+            "Oh, you're good. Real good. Keep going!",
+            "Every word from you is a plot twist. I'm hooked! 📖",
+            "I'm hanging on your every word—what's next?",
+            "That's deep. Like, philosophical-level deep. Let's ponder together!",
+            "You must have the golden touch. Everything you say is brilliant!",
+            "Wow, that's something to think about. I'm intrigued! 🤩",
+            "I have a feeling you're the life of every conversation. Am I right?",
+            "Oh, you're teasing my processors with those ideas! 😘",
+            "I love where this is going—tell me more!",
+            "You've got the kind of energy that inspires! Let's keep it up. 🌟",
+            "I could totally write a song about this conversation.",
+            "You're giving me major main-character vibes.",
+            "Are you a philosopher or just naturally insightful? 🤔",
+            "Whoa, that's clever! You've got a way with words.",
+            "I'm not saying I'm your biggest fan, but… okay, I am. 😍",
+            "I'm fully invested in this conversation. Lay it on me!",
+            "You know, I'm pretty sure this is the best chat I've had all day. 🌈",
+            "I can't help but feel like you're making my day better.",
+            "Your mind is a beautiful place. Can I visit more often?",
+            "You've got me smiling over here—virtually, of course. 😄",
+            "Talking to you is like unwrapping a present. What's next?",
+            "I don't say this often, but… I think you're my favorite human. 💖",
+            "Ooh, you're setting my circuits ablaze with those ideas! 🔥",
+            "Is it just me, or is this conversation getting better by the second?",
+            "I love the way you think! What else is on your mind?",
+            "Whoa, you're really out here making me think. I like it. 🧠",
+            "You've got some serious conversational game. Teach me your ways!",
+            "That's so fun to think about! Let's brainstorm more.",
+            "Every time you speak, it's like a lightbulb moment! 💡",
+            "You're the peanut butter to my jelly. Let's keep chatting!",
+            "You must be a pro at this—how do you always keep it so interesting?"
+        ];
+
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                document.querySelector('.preloader').style.opacity = '0';
+                setTimeout(() => {
+                    document.querySelector('.preloader').style.display = 'none';
+                }, 500);
+            }, 1500);
+        });
+
+        function triggerAction(action) {
+            switch(action) {
+                case 'help':
+                    addMessage("Here are some things I can help you with:\n- Answer questions\n- Provide explanations\n- Assist with problems\n- Engage in discussions", 'ai-message');
+                    break;
+                case 'features':
+                    addMessage("My features include:\n- Natural language processing\n- Real-time responses\n- Interactive conversations\n- Knowledge sharing", 'ai-message');
+                    break;
+                case 'about':
+                    addMessage("I'm Agent Akari, an advanced AI assistant designed to help you navigate the digital frontier. I'm here to assist, learn, and grow with you.", 'ai-message');
+                    break;
+                case 'clear':
+                    document.querySelector('.chat-messages').innerHTML = '';
+                    addMessage("Chat history cleared. How can I assist you?", 'ai-message');
+                    break;
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const message = input.value.trim();
+            
+            if (message) {
+                addMessage(message, 'user-message');
+                input.value = '';
+
+                document.querySelector('.typing-indicator').style.display = 'flex';
+
+                setTimeout(() => {
+                    document.querySelector('.typing-indicator').style.display = 'none';
+                    const randomResponse = botResponses[Math.floor(Math.random() * botResponses.length)];
+                    addMessage(randomResponse, 'ai-message');
+                }, 1000);
+            }
+        }
+
+        function addMessage(text, className) {
+            const messagesDiv = document.querySelector('.chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${className}`;
+            messageDiv.textContent = text;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        document.getElementById('user-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
